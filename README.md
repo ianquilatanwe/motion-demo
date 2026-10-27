@@ -43,11 +43,11 @@ All copy is in `src/lib/content.ts`. The lamp is one SVG component (`src/compone
 
 Measured on the production build, compressed transfer:
 
-- Page first-load JS: 135 kB (a plain Next.js page here is 103 kB), so about 32 kB for the page's
-  animation code plus the hooks it uses.
+- Page first-load JS: 135 kB (the empty Next.js shell is 103 kB), so about 32 kB is this page's own
+  code plus the animation hooks it imports.
 - A further 29 kB animation-features chunk loads after the page's load event.
 - The page uses `domMax` rather than the smaller `domAnimation` set only because of the sliding
-  selection ring (layout animation). Without the ring, about 10 kB could be saved.
+  selection ring (layout animation). Dropping the ring would allow the smaller set (not measured).
 
 ## UI standards check (2026-10-27)
 
