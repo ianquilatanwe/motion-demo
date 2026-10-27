@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+/* Colour tokens: use them by name (text-cream, bg-night, …). */
+@theme {
+  --color-night: #0c0a11; /* page background */
+  --color-deep: #15121c; /* cards */
+  --color-dusk: #3a2a3f; /* top of the dusk sky */
+  --color-edge: #2f2a3a; /* borders */
+  --color-amber: #ffb347; /* light, buttons, focus */
+  --color-amber-soft: #ffd9a0;
+  --color-cream: #f5ecdc; /* main text (15:1 on night) */
+  --color-mist: #b9b0c4; /* secondary text (9:1 on night) */
+}
+
+@theme inline {
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-bricolage);
+}
+
+html {
+  background: var(--color-night);
+  color-scheme: dark;
+  scroll-padding-top: 5rem; /* keep anchor targets clear of the sticky header */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  background: var(--color-night);
+  color: var(--color-cream);
+}
+
+/* One clear keyboard focus ring everywhere. */
+:focus-visible {
+  outline: 3px solid var(--color-amber);
+  outline-offset: 3px;
+}
+
+@utility btn-primary {
+  @apply inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full bg-amber px-7 text-base font-semibold text-night transition hover:bg-amber-soft active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+@utility btn-secondary {
+  @apply inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full border-2 border-amber px-7 text-base font-semibold text-amber transition hover:bg-amber/10 active:scale-[0.97];
+}
+
+@utility section-wrap {
+  @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+}
+
+@utility eyebrow {
+  @apply text-sm font-semibold uppercase tracking-[0.14em] text-amber;
+}
+
+/* Above-the-fold motion is plain CSS, so it runs before any JavaScript loads
+   and never delays the first paint of the headline. */
+@keyframes rise {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The lamp warms up smoothly. No flicker: flashing content is an accessibility risk. */
+@keyframes beam-on {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
