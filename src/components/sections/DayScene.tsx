@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef } from "react";
-import { useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
+import { useScroll, useSpring, useTransform } from "motion/react";
 import * as m from "motion/react-m";
+import { useStill } from "@/lib/useStill";
 import { Captions } from "@/components/Captions";
 import { Lamp } from "@/components/Lamp";
 import { dayStops } from "@/lib/content";
@@ -21,8 +22,7 @@ const dayItems = dayStops.map((stop) => ({
  * and the scroll position (0 to 1) drives the sky, the beam and the arm. For people who prefer
  * reduced motion the CSS drops the pinning and the three moments simply stack as text.
  */
-export function DayScene() {
-  const reduce = useReducedMotion() ?? false;
+function DaySceneInner({ reduce }: { reduce: boolean }) {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const p = useSpring(scrollYProgress, { stiffness: 120, damping: 30, restDelta: 0.001 });
@@ -34,9 +34,9 @@ export function DayScene() {
   const tilt = useTransform(p, [0, 1], reduce ? [0, 0] : [-7, 7]);
 
   return (
-    <section id="day" ref={ref} aria-labelledby="day-title" className="relative h-[300svh] motion-reduce:h-auto">
+    <section id="day" ref={ref} aria-labelledby="day-title" className="relative h-[300svh] still:h-auto">
       {/* top-16 / minus 4rem keeps the pinned panel clear of the 64px sticky header. */}
-      <div className="sticky top-16 h-[calc(100svh-4rem)] overflow-hidden motion-reduce:static motion-reduce:h-auto motion-reduce:py-24">
+      <div className="sticky top-16 h-[calc(100svh-4rem)] overflow-hidden still:static still:h-auto still:py-24">
         <m.div aria-hidden="true" style={{ opacity: dusk }} className="absolute inset-0 bg-[linear-gradient(to_bottom,var(--color-dusk),var(--color-night)_85%)]" />
         <div className="section-wrap relative grid h-full items-center gap-6 lg:grid-cols-2">
           <div>
@@ -53,4 +53,13 @@ export function DayScene() {
       </div>
     </section>
   );
+}
+
+/**
+ * Remounts when the "still" condition flips (after hydration, or when a phone is turned). The scroll
+ * transforms above are built once from `reduce`, so a changed flag needs fresh ones.
+ */
+export function DayScene() {
+  const still = useStill();
+  return <DaySceneInner key={String(still)} reduce={still} />;
 }

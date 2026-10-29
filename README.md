@@ -28,6 +28,8 @@ finish wash (`clip-path`, one 0.9 s paint per click) and the flashlight mask, wh
 - **Reduced motion:** with `prefers-reduced-motion` the pinned scene is not pinned (CSS), the three
   moments and the three fold steps simply stack as text, the lamp stays open, the entrance animations
   do not run, the spec band stops, the blueprint is fully lit, and the pointer effects are off.
+- **Short windows:** a phone held sideways (under 520 px tall) gets the same unpinned, stacked layout as
+  reduced motion, because the pinned scenes would clip their content there.
 - **Real text and real controls:** all copy is HTML text, the finish picker is a native radio group
   (arrow keys work), the moving counters are hidden from screen readers and the final number is read instead.
 - **Light only on hover-capable pointers:** the cursor glow and magnetic button react to a mouse, not touch.

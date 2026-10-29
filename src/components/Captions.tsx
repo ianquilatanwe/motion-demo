@@ -20,7 +20,7 @@ type Item = { title: React.ReactNode; text: string };
 function Caption({ i, item, progress, reduce }: { i: number; item: Item; progress: MotionValue<number>; reduce: boolean }) {
   const opacity = useTransform(progress, windows[i], reduce ? fades[i].map(() => 1) : fades[i]);
   return (
-    <m.li style={{ opacity }} className="[grid-area:1/1] motion-reduce:[grid-area:auto]">
+    <m.li style={{ opacity }} className="[grid-area:1/1] still:[grid-area:auto]">
       <p className="font-display text-2xl font-bold sm:text-3xl">{item.title}</p>
       <p className="mt-2 max-w-md text-mist sm:text-lg">{item.text}</p>
     </m.li>
@@ -33,7 +33,7 @@ function Caption({ i, item, progress, reduce }: { i: number; item: Item; progres
  */
 export function Captions({ items, progress, reduce }: { items: Item[]; progress: MotionValue<number>; reduce: boolean }) {
   return (
-    <ol className="mt-8 grid motion-reduce:gap-8">
+    <ol className="mt-8 grid still:gap-8">
       {items.map((item, i) => (
         <Caption key={i} i={i} item={item} progress={progress} reduce={reduce} />
       ))}

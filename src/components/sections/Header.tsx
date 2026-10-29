@@ -5,7 +5,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-edge/70 bg-night/85 backdrop-blur">
       <div className="section-wrap flex h-16 items-center justify-between gap-4">
-        <a href="#top" className="font-display text-xl font-bold tracking-tight text-cream sm:text-2xl">
+        <a href="#top" className="inline-flex min-h-11 items-center font-display text-xl font-bold tracking-tight text-cream sm:text-2xl">
           {brand}
         </a>
         <nav aria-label="Main" className="hidden items-center gap-8 md:flex">

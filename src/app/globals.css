@@ -12,6 +12,17 @@
   --color-mist: #b9b0c4; /* secondary text (9:1 on night) */
 }
 
+/* "still" = the pinned scenes are not pinned: the person asked for less motion, or the window is too
+   short for a scene's content to fit (a phone held sideways). Keep in step with src/lib/useStill.ts. */
+@custom-variant still {
+  @media (prefers-reduced-motion: reduce) {
+    @slot;
+  }
+  @media (max-height: 520px) {
+    @slot;
+  }
+}
+
 @theme inline {
   --font-sans: var(--font-inter);
   --font-display: var(--font-bricolage);
