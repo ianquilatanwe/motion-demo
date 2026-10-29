@@ -8,6 +8,8 @@ import { finishes } from "@/lib/content";
 
 /** A soft wash of the finish colour, brightest at the top of the section. */
 const tint = (body: string) => `radial-gradient(ellipse 80% 70% at 50% 0%, color-mix(in oklab, ${body} 38%, transparent), transparent 80%)`;
+/** The same colour as a flat disc, for the spreading circle. */
+const disc = (body: string) => `color-mix(in oklab, ${body} 16%, transparent)`;
 
 /** What the last pick started: where it was clicked, how far the wash must grow, and the colour it brings. */
 type Wipe = { id: number; x: number; y: number; radius: number; body: string };
@@ -16,45 +18,58 @@ type Wipe = { id: number; x: number; y: number; radius: number; body: string };
  * Finish picker. The radios are real inputs, so arrow keys and screen readers work for free.
  * The ring slides between swatches with a shared-element (layoutId) animation, the lamp fades
  * to the new colour, the description cross-fades, and the section's colour wash spreads outward
- * from the swatch you picked (a growing circular clip-path).
+ * from the swatch you picked: a disc that scales up from the swatch to cover the section, then
+ * cross-fades into the soft wash. Only transform and opacity move.
  */
 export function Finishes() {
   const reduce = useReducedMotion();
   const section = useRef<HTMLElement>(null);
+  const latest = useRef(0); // id of the newest wipe, so a superseded wipe can't settle the colour
   const [index, setIndex] = useState(0);
-  const [settled, setSettled] = useState(finishes[0].body); // the wash that fills the section once a wipe has finished
+  const [settled, setSettled] = useState(finishes[0].body); // the soft wash that fills the section
   const [wipe, setWipe] = useState<Wipe | null>(null);
   const current = finishes[index];
 
   function pick(i: number, label: HTMLLabelElement) {
     setIndex(i);
-    if (wipe) setSettled(wipe.body); // a pick made mid-wipe: lock in the previous colour so it can't flash back
     const body = finishes[i].body;
     const s = section.current?.getBoundingClientRect();
     if (reduce || !s) return setSettled(body);
     const r = label.getBoundingClientRect();
     const x = r.left + r.width / 2 - s.left;
     const y = r.top + r.height / 2 - s.top;
-    // Far enough to reach the farthest corner, so the circle always covers the whole section.
+    // Far enough to reach the farthest corner, so the disc always covers the whole section.
     const radius = Math.hypot(Math.max(x, s.width - x), Math.max(y, s.height - y));
-    setWipe((w) => ({ id: (w?.id ?? 0) + 1, x, y, radius, body }));
+    const id = ++latest.current;
+    setWipe({ id, x, y, radius, body });
+  }
+
+  function settle(w: Wipe) {
+    if (latest.current !== w.id) return;
+    setSettled(w.body);
+    setWipe(null);
   }
 
   return (
     <section id="finish" ref={section} className="relative overflow-hidden py-20 md:py-28">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 transition-none" style={{ background: tint(settled) }} />
-      {wipe && (
-        <m.div
-          key={wipe.id}
-          aria-hidden="true"
-          initial={{ clipPath: `circle(0px at ${wipe.x}px ${wipe.y}px)` }}
-          animate={{ clipPath: `circle(${wipe.radius}px at ${wipe.x}px ${wipe.y}px)` }}
-          transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1] }}
-          onAnimationComplete={() => setSettled(wipe.body)}
-          className="pointer-events-none absolute inset-0"
-          style={{ background: tint(wipe.body) }}
-        />
-      )}
+      <AnimatePresence initial={false}>
+        <m.div key={settled} aria-hidden="true" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} className="pointer-events-none absolute inset-0" style={{ background: tint(settled) }} />
+      </AnimatePresence>
+      <AnimatePresence>
+        {wipe && (
+          <m.div
+            key={wipe.id}
+            aria-hidden="true"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.5 } }}
+            transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1] }}
+            onAnimationComplete={() => settle(wipe)}
+            className="pointer-events-none absolute rounded-full"
+            style={{ left: wipe.x - wipe.radius, top: wipe.y - wipe.radius, width: wipe.radius * 2, height: wipe.radius * 2, background: disc(wipe.body) }}
+          />
+        )}
+      </AnimatePresence>
       <div className="section-wrap relative grid items-center gap-12 lg:grid-cols-2">
         <div className="mx-auto w-full max-w-xs lg:order-2 lg:max-w-sm">
           <Lamp body={current.body} className="h-auto w-full" />

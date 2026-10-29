@@ -8,9 +8,9 @@ export function Header() {
         <a href="#top" className="inline-flex min-h-11 items-center font-display text-xl font-bold tracking-tight text-cream sm:text-2xl">
           {brand}
         </a>
-        <nav aria-label="Main" className="hidden items-center gap-8 md:flex">
+        <nav aria-label="Main" className="hidden items-center gap-4 md:flex">
           {nav.map((item) => (
-            <a key={item.href} href={item.href} className="py-2.5 font-medium text-mist transition hover:text-cream">
+            <a key={item.href} href={item.href} className="inline-flex min-h-11 min-w-11 items-center justify-center px-3 font-medium text-mist transition hover:text-cream">
               {item.label}
             </a>
           ))}

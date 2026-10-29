@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { useAnimationFrame, useInView, useMotionTemplate, useMotionValue, useReducedMotion, useSpring } from "motion/react";
+import { useAnimationFrame, useInView, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
 import * as m from "motion/react-m";
 import { parts } from "@/lib/content";
 
@@ -56,6 +56,7 @@ function Parts() {
  * "Under the hood": the drawing sits in the dark and a circle of light reveals it. A mouse steers
  * the light. Without one (touch, keyboard) the light wanders on its own, so the drawing is never
  * hidden behind a hover. With reduced motion there is no dark layer at all. The words are plain text.
+ * The dark layer is a large radial gradient with a clear centre, moved with a transform.
  */
 export function Blueprint() {
   const reduce = useReducedMotion();
@@ -66,8 +67,10 @@ export function Blueprint() {
   const y = useMotionValue(50);
   const sx = useSpring(x, { stiffness: 110, damping: 20 });
   const sy = useSpring(y, { stiffness: 110, damping: 20 });
-  // min() keeps the beam of light from swallowing a phone-sized panel.
-  const light = useMotionTemplate`radial-gradient(circle min(260px, 55vw) at ${sx}% ${sy}%, #000 0%, rgba(0,0,0,0.9) 40%, transparent 100%)`;
+  // The overlay is 3× the drawing's size, so its centre can reach any point of the drawing. A translate in %
+  // is a share of the overlay's own width: moving the light from 50% to p% of the drawing is (p - 50) / 3.
+  const tx = useTransform(sx, (v) => `${(v - 50) / 3}%`);
+  const ty = useTransform(sy, (v) => `${(v - 50) / 3}%`);
 
   useAnimationFrame((t) => {
     if (reduce || !inView || steered.current) return;
@@ -92,16 +95,13 @@ export function Blueprint() {
         </h2>
         <div className="mt-10 overflow-hidden rounded-3xl border border-edge bg-deep p-6 sm:p-10">
           {/* Only the drawing sits in the dark. The part descriptions stay at full contrast so no one needs the light to read them. */}
-          <div ref={ref} onPointerMove={onPointerMove} onPointerLeave={() => (steered.current = false)} className="relative" aria-hidden="true">
-            <div className="select-none text-cream opacity-[0.14] motion-reduce:hidden">
-              <Drawing />
-            </div>
+          <div ref={ref} onPointerMove={onPointerMove} onPointerLeave={() => (steered.current = false)} className="relative overflow-hidden text-amber-soft" aria-hidden="true">
+            <Drawing />
+            {/* Darkness with a hole in it. Moving it is a transform, so no repaint while the light travels. min() keeps the hole from swallowing a phone-sized panel. */}
             <m.div
-              style={{ maskImage: light, WebkitMaskImage: light }}
-              className="absolute inset-0 text-amber-soft motion-reduce:static motion-reduce:[-webkit-mask-image:none]! motion-reduce:[mask-image:none]!"
-            >
-              <Drawing />
-            </m.div>
+              style={{ x: tx, y: ty, background: "radial-gradient(circle min(260px, 55vw), transparent 0, rgba(21,18,28,0.1) 40%, rgba(21,18,28,0.86) 100%)" }}
+              className="pointer-events-none absolute -left-full -top-full h-[300%] w-[300%] motion-reduce:hidden"
+            />
           </div>
           <Parts />
         </div>

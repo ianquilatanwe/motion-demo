@@ -12,13 +12,17 @@
   --color-mist: #b9b0c4; /* secondary text (9:1 on night) */
 }
 
-/* "still" = the pinned scenes are not pinned: the person asked for less motion, or the window is too
-   short for a scene's content to fit (a phone held sideways). Keep in step with src/lib/useStill.ts. */
+/* "still" = the pinned scenes are not pinned: the person asked for less motion, the window is too short
+   for a scene's content (a phone held sideways), or the scene was measured clipping its content, in which
+   case useStill puts data-still on the section. Keep in step with src/lib/useStill.ts. */
 @custom-variant still {
   @media (prefers-reduced-motion: reduce) {
     @slot;
   }
   @media (max-height: 520px) {
+    @slot;
+  }
+  &:where([data-still], [data-still] *) {
     @slot;
   }
 }

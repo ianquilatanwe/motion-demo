@@ -14,13 +14,13 @@ const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
 
 const title = "Lumenfold – A Desk Lamp That Folds Away (Motion Demo)";
 const description =
-  "A portfolio demo of scroll-linked animation in Next.js: a pinned dusk-to-night scene, a shared-element finish picker and reduced-motion support. By Ian Quilatan.";
+  "A portfolio demo of scroll-linked animation in Next.js: a lamp that folds flat as you scroll, a dusk-to-night scene, a flashlight reveal and a shared-element finish picker, with reduced-motion support. By Ian Quilatan.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title,
   description,
-  openGraph: { title, description, type: "website" },
+  openGraph: { title, description, type: "website", siteName: "Lumenfold" },
   twitter: { card: "summary_large_image", title, description },
 };
 
