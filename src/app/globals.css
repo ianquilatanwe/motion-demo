@@ -87,3 +87,36 @@ body {
     opacity: 1;
   }
 }
+
+/* The lamp unfolds joint by joint. Each keyframe has only a `from`: the end is whatever pose the
+   component has set, so the head can still be aimed afterwards. Angles match FOLD in lib/lampPose.ts. */
+@keyframes unfold-1 {
+  from {
+    transform: rotate(-73deg);
+  }
+}
+@keyframes unfold-2 {
+  from {
+    transform: rotate(132deg);
+  }
+}
+@keyframes unfold-3 {
+  from {
+    transform: rotate(-59deg);
+  }
+}
+
+/* A speck of dust rises through the beam and fades. --dx, --dur and --delay are set per speck. */
+@keyframes mote {
+  0% {
+    opacity: 0;
+    transform: translate(0, 12px);
+  }
+  25% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), -34px);
+  }
+}

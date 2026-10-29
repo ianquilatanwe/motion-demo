@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useInView, useReducedMotion } from "motion/react";
-import * as m from "motion/react-m";
+import { TiltCard } from "@/components/TiltCard";
 import { features } from "@/lib/content";
 
 /** Counts from 0 to `to` once, when it scrolls into view. A plain requestAnimationFrame loop, so it adds no library weight. */
@@ -35,7 +35,7 @@ function CountUp({ to }: { to: number }) {
   );
 }
 
-/** Three feature cards that rise into place once as they enter, with numbers that count up. */
+/** Three feature cards that rise into place once as they enter (and lean toward a mouse), with numbers that count up. */
 export function Features() {
   return (
     <section id="features" className="py-20 md:py-28">
@@ -44,7 +44,7 @@ export function Features() {
         <h2 className="mt-3 font-display text-4xl font-bold tracking-tight sm:text-6xl">Three numbers to remember</h2>
         <ul className="mt-12 grid gap-6 md:grid-cols-3">
           {features.map((f, i) => (
-            <m.li
+            <TiltCard
               key={f.title}
               initial={{ opacity: 0, y: 28 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -58,7 +58,7 @@ export function Features() {
               <p className="mt-1 text-sm font-semibold uppercase tracking-[0.14em] text-mist">{f.unit}</p>
               <h3 className="mt-6 font-display text-xl font-bold">{f.title}</h3>
               <p className="mt-2 text-mist">{f.text}</p>
-            </m.li>
+            </TiltCard>
           ))}
         </ul>
       </div>

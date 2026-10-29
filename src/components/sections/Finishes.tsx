@@ -1,23 +1,61 @@
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence } from "motion/react";
+import { useRef, useState } from "react";
+import { AnimatePresence, useReducedMotion } from "motion/react";
 import * as m from "motion/react-m";
 import { Lamp } from "@/components/Lamp";
 import { finishes } from "@/lib/content";
 
+/** A soft wash of the finish colour, brightest at the top of the section. */
+const tint = (body: string) => `radial-gradient(ellipse 80% 70% at 50% 0%, color-mix(in oklab, ${body} 38%, transparent), transparent 80%)`;
+
+/** What the last pick started: where it was clicked, how far the wash must grow, and the colour it brings. */
+type Wipe = { id: number; x: number; y: number; radius: number; body: string };
+
 /**
  * Finish picker. The radios are real inputs, so arrow keys and screen readers work for free.
  * The ring slides between swatches with a shared-element (layoutId) animation, the lamp fades
- * to the new colour, and the description cross-fades.
+ * to the new colour, the description cross-fades, and the section's colour wash spreads outward
+ * from the swatch you picked (a growing circular clip-path).
  */
 export function Finishes() {
+  const reduce = useReducedMotion();
+  const section = useRef<HTMLElement>(null);
   const [index, setIndex] = useState(0);
+  const [settled, setSettled] = useState(finishes[0].body); // the wash that fills the section once a wipe has finished
+  const [wipe, setWipe] = useState<Wipe | null>(null);
   const current = finishes[index];
 
+  function pick(i: number, label: HTMLLabelElement) {
+    setIndex(i);
+    if (wipe) setSettled(wipe.body); // a pick made mid-wipe: lock in the previous colour so it can't flash back
+    const body = finishes[i].body;
+    const s = section.current?.getBoundingClientRect();
+    if (reduce || !s) return setSettled(body);
+    const r = label.getBoundingClientRect();
+    const x = r.left + r.width / 2 - s.left;
+    const y = r.top + r.height / 2 - s.top;
+    // Far enough to reach the farthest corner, so the circle always covers the whole section.
+    const radius = Math.hypot(Math.max(x, s.width - x), Math.max(y, s.height - y));
+    setWipe((w) => ({ id: (w?.id ?? 0) + 1, x, y, radius, body }));
+  }
+
   return (
-    <section id="finish" className="py-20 md:py-28">
-      <div className="section-wrap grid items-center gap-12 lg:grid-cols-2">
+    <section id="finish" ref={section} className="relative overflow-hidden py-20 md:py-28">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 transition-none" style={{ background: tint(settled) }} />
+      {wipe && (
+        <m.div
+          key={wipe.id}
+          aria-hidden="true"
+          initial={{ clipPath: `circle(0px at ${wipe.x}px ${wipe.y}px)` }}
+          animate={{ clipPath: `circle(${wipe.radius}px at ${wipe.x}px ${wipe.y}px)` }}
+          transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1] }}
+          onAnimationComplete={() => setSettled(wipe.body)}
+          className="pointer-events-none absolute inset-0"
+          style={{ background: tint(wipe.body) }}
+        />
+      )}
+      <div className="section-wrap relative grid items-center gap-12 lg:grid-cols-2">
         <div className="mx-auto w-full max-w-xs lg:order-2 lg:max-w-sm">
           <Lamp body={current.body} className="h-auto w-full" />
         </div>
@@ -29,7 +67,7 @@ export function Finishes() {
             <div className="flex flex-wrap gap-6">
               {finishes.map((f, i) => (
                 <label key={f.name} className="flex cursor-pointer flex-col items-center gap-2">
-                  <input type="radio" name="finish" value={f.name} checked={i === index} onChange={() => setIndex(i)} className="peer sr-only" />
+                  <input type="radio" name="finish" value={f.name} checked={i === index} onChange={(e) => pick(i, e.currentTarget.closest("label")!)} className="peer sr-only" />
                   <span className="relative grid size-16 place-items-center rounded-full peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-4 peer-focus-visible:outline-amber">
                     <span className="size-11 rounded-full border border-white/25" style={{ background: f.body }} />
                     {i === index && (

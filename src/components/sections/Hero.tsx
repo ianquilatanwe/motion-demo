@@ -1,14 +1,20 @@
 "use client";
 
+import { useRef } from "react";
 import { useReducedMotion, useSpring } from "motion/react";
 import * as m from "motion/react-m";
 import { Lamp } from "@/components/Lamp";
 
-/** Headline lines slide up out of a mask (CSS only), the lamp warms up, and on a mouse the glow drifts after the pointer. */
+/**
+ * Headline lines slide up out of a mask (CSS only), the lamp unfolds and warms up, and on a mouse the
+ * glow drifts after the pointer while the lamp head turns to aim its beam at it.
+ */
 export function Hero() {
   const reduce = useReducedMotion();
   const x = useSpring(0, { stiffness: 50, damping: 20 });
   const y = useSpring(0, { stiffness: 50, damping: 20 });
+  const aim = useSpring(0, { stiffness: 90, damping: 12 }); // underdamped on purpose: the head overshoots a little
+  const lamp = useRef<HTMLDivElement>(null);
 
   function onPointerMove(e: React.PointerEvent<HTMLElement>) {
     // Touch and pen input have no hover, so only a mouse steers the glow.
@@ -16,10 +22,14 @@ export function Hero() {
     const r = e.currentTarget.getBoundingClientRect();
     x.set((e.clientX - r.left - r.width / 2) * 0.12);
     y.set((e.clientY - r.top - r.height / 2) * 0.12);
+
+    // Turn the head toward the pointer: ±24° at a distance of about a lamp-width and a half.
+    const l = lamp.current?.getBoundingClientRect();
+    if (l) aim.set(Math.max(-24, Math.min(24, ((e.clientX - (l.left + l.width / 2)) / (l.width * 1.5)) * 24)));
   }
 
   return (
-    <section id="top" onPointerMove={onPointerMove} className="relative overflow-hidden">
+    <section id="top" onPointerMove={onPointerMove} onPointerLeave={() => aim.set(0)} className="relative overflow-hidden">
       <m.div
         aria-hidden="true"
         style={{ x, y }}
@@ -37,7 +47,7 @@ export function Hero() {
             </span>
           </h1>
           <p className="mt-6 max-w-md text-lg text-mist motion-safe:animate-[fade-up_0.8s_ease-out_0.5s_both]">
-            Lumenfold is a made-up desk lamp: 1,200 lumens, a 24 mm fold and a beam that warms and cools with the hour.
+            Lumenfold is a made-up desk lamp: 1,200 lumens, a 78 mm fold and a beam that warms and cools with the hour.
           </p>
           <div className="mt-8 flex flex-wrap gap-3 motion-safe:animate-[fade-up_0.8s_ease-out_0.65s_both]">
             <a href="#day" className="btn-primary">
@@ -48,8 +58,8 @@ export function Hero() {
             </a>
           </div>
         </div>
-        <div className="relative mx-auto w-full max-w-sm lg:max-w-md">
-          <Lamp intro className="h-auto w-full" />
+        <div ref={lamp} className="relative mx-auto w-full max-w-sm lg:max-w-md">
+          <Lamp intro motes aim={aim} className="h-auto w-full" />
         </div>
       </div>
     </section>

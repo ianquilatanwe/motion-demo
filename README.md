@@ -11,21 +11,27 @@ button sends nothing.
 
 | Section | What moves | How |
 | --- | --- | --- |
-| Hero | Headline lines slide up out of a mask, the lamp warms up, the glow drifts after a mouse | Plain CSS keyframes (they run before any JavaScript, so the headline paints at once); the glow is `motion` |
+| Hero | Headline lines slide up out of a mask, the lamp **unfolds joint by joint** and lights, dust drifts in the beam, the lamp head **turns to aim at a mouse**, the glow drifts after it | Plain CSS keyframes (they run before any JavaScript, so the headline paints at once); aim and glow are `motion` springs |
+| Spec band | Big type drifts sideways; scroll speed speeds it up, reverses it and skews it | `useVelocity` + `useAnimationFrame`, two copies so the wrap is invisible; paused off-screen |
 | The day (pinned) | Dusk sky fades to night, the beam widens and turns from amber toward white, the arm sweeps, captions cross-fade | Scroll position (`useScroll`) drives opacity, scale and rotate |
-| Features | Cards rise in once, numbers count up | `whileInView`; the counter is a 10-line `requestAnimationFrame` loop |
-| Finish picker | Selection ring slides between swatches, the lamp fades to the new colour, the text cross-fades | Shared-element animation (`layoutId`), `AnimatePresence` |
-| Closing | Button leans toward a mouse; the footer lamp switches off as it scrolls in | Springs and scroll progress |
+| Fold (pinned) | The lamp folds flat one joint at a time, a measuring line follows its highest point, the height counts 420 → 78 mm, a pocket outline draws itself | Scroll drives an articulated SVG rig (three nested rotations); the height comes from the same joint maths (`src/lib/lampPose.ts`) |
+| Features | Cards rise in once, lean toward a mouse with a moving highlight, numbers count up | `whileInView`; springs into `rotateX/Y`; the counter is a 10-line `requestAnimationFrame` loop |
+| Under the hood | A circle of light reveals a line drawing; a mouse steers it, otherwise it wanders on its own | `useMotionTemplate` builds a `mask-image` from two springs, so React never re-renders |
+| Finish picker | Selection ring slides between swatches, the lamp fades to the new colour, the section's colour wash spreads out from the swatch you picked | `layoutId`, `AnimatePresence`, animated circular `clip-path` |
+| Closing | Button leans toward a mouse; the footer lamp switches off as it scrolls in; a cord down the right edge fills with the page | Springs and scroll progress |
 
-Only `transform` and `opacity` move (plus a colour fade on the lamp's SVG body in the finish picker).
+Mostly `transform` and `opacity` move. The exceptions are a colour fade on the lamp's SVG body, the
+finish wash (`clip-path`, one 0.9 s paint per click) and the flashlight mask, which repaints one panel.
 
 ## Accessibility and performance rules this follows
 
 - **Reduced motion:** with `prefers-reduced-motion` the pinned scene is not pinned (CSS), the three
-  moments simply stack as text, the entrance animations do not run, and the pointer effects are off.
+  moments and the three fold steps simply stack as text, the lamp stays open, the entrance animations
+  do not run, the spec band stops, the blueprint is fully lit, and the pointer effects are off.
 - **Real text and real controls:** all copy is HTML text, the finish picker is a native radio group
   (arrow keys work), the moving counters are hidden from screen readers and the final number is read instead.
 - **Light only on hover-capable pointers:** the cursor glow and magnetic button react to a mouse, not touch.
+- **Nothing hides behind hover:** the blueprint light wanders by itself, so touch and keyboard users see it all.
 - **No flashing:** the lamp fades on; it never flickers.
 - **Animation code loads late:** `LazyMotion` fetches the animation features after the page loads.
 
@@ -43,7 +49,7 @@ All copy is in `src/lib/content.ts`. The lamp is one SVG component (`src/compone
 
 Measured on the production build, compressed transfer:
 
-- Page first-load JS: 135 kB (the empty Next.js shell is 103 kB), so about 32 kB is this page's own
+- Page first-load JS: 140 kB (the empty Next.js shell is 103 kB), so about 37 kB is this page's own
   code plus the animation hooks it imports.
 - A further 29 kB animation-features chunk loads after the page's load event.
 - The page uses `domMax` rather than the smaller `domAnimation` set only because of the sliding
